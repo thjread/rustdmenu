@@ -9,7 +9,7 @@ extern crate rustc_serialize;
 use rustc_serialize::json;
 
 const SAVEFILE : &'static str = "/home/tread/.rustdmenu_save";
-const DMENU_ARGS : [&'static str; 10] = ["-fn", "Profont-10", "-nb", "#2b2b2b", "-nf", "#839496", "-sb", "#268bd2", "-sf", "#eee8d5"];
+const DMENU_ARGS : [&'static str; 12] = ["-o", "0.8", "-fn", "Source Code Pro:pixelsize=28", "-nb", "#2b2b2b", "-nf", "#839496", "-sb", "#268bd2", "-sf", "#eee8d5"];
 
 fn load_map() -> HashMap<String, i32> {
     let path = Path::new(SAVEFILE);

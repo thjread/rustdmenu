@@ -1,15 +1,16 @@
-use std::process::{Command, Stdio};
-use std::io::prelude::*;
 use std::collections::HashMap;
-use std::fs::File;
-use std::path::Path;
 use std::env;
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
+use std::process::{Command, Stdio};
 
-extern crate rustc_serialize;
-use rustc_serialize::json;
+extern crate serde;
+extern crate serde_json;
 
-const SAVEFILE : &'static str = "/home/tread/.rustdmenu_save";
-const DMENU_ARGS : [&'static str; 12] = ["-o", "0.8", "-fn", "Source Code Pro:pixelsize=28", "-nb", "#2b2b2b", "-nf", "#839496", "-sb", "#268bd2", "-sf", "#eee8d5"];
+const SAVEFILE: &'static str = "/home/tread/.rustdmenu_save";
+const DMENU_ARGS: [&'static str; 12] = ["-o", "0.8", "-fn", "Source Code Pro:pixelsize=28", "-nb",
+    "#2b2b2b", "-nf", "#839496", "-sb", "#268bd2", "-sf", "#eee8d5"];
 
 fn load_map() -> HashMap<String, i32> {
     let path = Path::new(SAVEFILE);
@@ -17,7 +18,7 @@ fn load_map() -> HashMap<String, i32> {
         Ok(mut f) => {
             let mut data = String::new();
             f.read_to_string(&mut data).unwrap();
-            json::decode(&data).unwrap()
+            serde_json::from_str(&data).unwrap()
         }
         Err(_) => {
             let m: HashMap<String, i32> = HashMap::new();
@@ -40,8 +41,9 @@ fn update_used(prog_map: &mut HashMap<String, i32>, used: &str) {
 fn save_map(prog_map: &HashMap<String, i32>) {
     let path = Path::new(SAVEFILE);
     let mut file = File::create(path).expect("Failed to open file for writing");
-    let encode = json::encode(prog_map).unwrap();
-    file.write_all(encode.as_bytes()).expect("File writing failed");
+    let encode = serde_json::to_string(&prog_map).unwrap();
+    file.write_all(encode.as_bytes())
+        .expect("File writing failed");
 }
 
 fn delete(prog: &str) {
@@ -51,7 +53,9 @@ fn delete(prog: &str) {
 }
 
 fn dmenu() {
-    let dmenu_path_output = Command::new("dmenu_path").output().expect("Failed to run dmenu_path");
+    let dmenu_path_output = Command::new("dmenu_path")
+        .output()
+        .expect("Failed to run dmenu_path");
     let dmenu_path_out = String::from_utf8_lossy(&dmenu_path_output.stdout);
 
     let mut prog_map = load_map();
@@ -68,11 +72,23 @@ fn dmenu() {
 
         load_map();
 
-        dmenu_process = Command::new("dmenu").args(&DMENU_ARGS).stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().expect("Failed to spawn dmenu");
-        dmenu_process.stdin.take().unwrap().write_all(prog_list.join("\n").as_bytes()).expect("Failed to write to stdin");
+        dmenu_process = Command::new("dmenu")
+            .args(&DMENU_ARGS)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("Failed to spawn dmenu");
+        dmenu_process
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(prog_list.join("\n").as_bytes())
+            .expect("Failed to write to stdin");
     }
 
-    let output = dmenu_process.wait_with_output().expect("Failed to wait for dmenu");
+    let output = dmenu_process
+        .wait_with_output()
+        .expect("Failed to wait for dmenu");
     let s = String::from_utf8_lossy(&output.stdout);
     let used = s.trim();
 

@@ -2,18 +2,24 @@ use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 extern crate serde;
 extern crate serde_json;
 
-const SAVEFILE: &'static str = "/home/tread/.rustdmenu_save";
+const SAVEFILE: &'static str = ".rustdmenu_save";
 const DMENU_ARGS: [&'static str; 12] = ["-o", "0.8", "-fn", "Source Code Pro:pixelsize=28", "-nb",
     "#2b2b2b", "-nf", "#839496", "-sb", "#268bd2", "-sf", "#eee8d5"];
 
+fn save_path() -> PathBuf {
+    let mut path = env::home_dir().unwrap();
+    path.push(SAVEFILE);
+    return path;
+}
+
 fn load_map() -> HashMap<String, i32> {
-    let path = Path::new(SAVEFILE);
+    let path = save_path();
     match File::open(path) {
         Ok(mut f) => {
             let mut data = String::new();
@@ -39,7 +45,7 @@ fn update_used(prog_map: &mut HashMap<String, i32>, used: &str) {
 }
 
 fn save_map(prog_map: &HashMap<String, i32>) {
-    let path = Path::new(SAVEFILE);
+    let path = save_path();
     let mut file = File::create(path).expect("Failed to open file for writing");
     let encode = serde_json::to_string(&prog_map).unwrap();
     file.write_all(encode.as_bytes())

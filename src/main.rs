@@ -9,7 +9,7 @@ extern crate serde;
 extern crate serde_json;
 
 const SAVEFILE: &'static str = ".rustdmenu_save";
-const DMENU_ARGS: [&'static str; 12] = ["-o", "0.8", "-fn", "Source Code Pro:pixelsize=28", "-nb",
+const DMENU_ARGS: [&'static str; 10] = ["-o", "0.8", "-nb",
     "#2b2b2b", "-nf", "#839496", "-sb", "#268bd2", "-sf", "#eee8d5"];
 
 fn save_path() -> PathBuf {
@@ -58,7 +58,7 @@ fn delete(prog: &str) {
     save_map(&prog_map);
 }
 
-fn dmenu() {
+fn dmenu(maybe_font: Option<&str>) {
     let dmenu_path_output = Command::new("dmenu_path")
         .output()
         .expect("Failed to run dmenu_path");
@@ -78,8 +78,15 @@ fn dmenu() {
 
         load_map();
 
+        let mut args: Vec<&str> = Vec::new();
+        args.extend(&DMENU_ARGS);
+        if let Some(font) = maybe_font {
+            args.push("-fn");
+            args.push(font);
+        }
+
         dmenu_process = Command::new("dmenu")
-            .args(&DMENU_ARGS)
+            .args(args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()
@@ -112,7 +119,9 @@ fn main() {
 
     if args.len() > 2 && args[1].eq("delete") {
         delete(&args[2]);
+    } else if args.len() > 2 && args[1].eq("-fn"){
+        dmenu(Some(&args[2]));
     } else {
-        dmenu();
+        dmenu(None);
     }
 }

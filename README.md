@@ -1,4 +1,4 @@
-#rustdmenu
+# rustdmenu
 
 Sorts dmenu by the number of times each command is used.
 
